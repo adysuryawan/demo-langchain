@@ -1,0 +1,27 @@
+name: Deploy to Cloud Run
+
+on: [push] # Trigger on pushes to the repository
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: asia-southeast2-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gke-autopilot-demo-350114/${{ secrets.IMAGE }}:latest
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v0
+        with:
+          service_account_key: ${{ secrets.GOOGLE_CLOUD_SA_KEY }}
+          service: ${{ secrets.SERVICE_NAME }}
+          image: asia-southeast2-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gke-autopilot-demo-350114/${{ secrets.IMAGE }}:latest
+          region: ${{ secrets.REGION }}
+          allow-unauthenticated: true
